@@ -1,0 +1,15 @@
+package main
+
+import (
+	"fmt"
+	"runtime"
+)
+
+func main() {
+	// print number of all cpu cores
+	fmt.Println(runtime.NumCPU())
+	// to use all cpu cores
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	// print number of all go routins
+	fmt.Println(runtime.NumGoroutine())
+}

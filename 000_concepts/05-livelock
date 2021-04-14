@@ -1,0 +1,68 @@
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+var (
+	everythingDone bool = false
+	resource1      bool = false
+	resource2      bool = false
+	resource3      bool = false
+)
+
+func main() {
+	var wg sync.WaitGroup
+
+	go mainProcess(&wg)
+
+	for !everythingDone {
+		time.Sleep(time.Second * 5)
+		fmt.Println("waiting...")
+	}
+	fmt.Println("Finally Finished")
+}
+
+func mainProcess(wg *sync.WaitGroup) {
+	wg.Add(3)
+	go serviceA(wg)
+	go serviceB(wg)
+	go serviceC(wg)
+
+	wg.Wait()
+	if resource1 && resource2 && resource3 {
+		everythingDone = true
+	}
+}
+
+func serviceA(wg *sync.WaitGroup) {
+	for range time.Tick(time.Second * 2) {
+		fmt.Println("I'm service A")
+		if resource1 {
+			resource2 = true
+			wg.Done()
+		}
+	}
+}
+
+func serviceB(wg *sync.WaitGroup) {
+	for range time.Tick(time.Second * 2) {
+		fmt.Println("I'm service B")
+		if resource2 {
+			resource3 = true
+			wg.Done()
+		}
+	}
+}
+
+func serviceC(wg *sync.WaitGroup) {
+	for range time.Tick(time.Second * 2) {
+		fmt.Println("I'm service C")
+		if resource3 {
+			resource1 = true
+			wg.Done()
+		}
+	}
+}

@@ -1,0 +1,20 @@
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+
+	fmt.Println("main process starts")
+
+	go longProcess()
+
+	fmt.Println("main process finished")
+}
+
+func longProcess() {
+	time.Sleep(time.Second * 5) // simulate work
+	fmt.Println("I'm the long process")
+}

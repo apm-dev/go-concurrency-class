@@ -1,0 +1,54 @@
+Concurrency vs. Parallelism:
+
+	Concurrency is a property of the code
+	parallelism is a property of the running process
+
+Race Conditions
+	1. when concurrent processes needs to be synchronized but are not
+		- no guarantee that process_one will wait for process_two to finish
+
+Atomicity
+	- Atomic means an operation that cannot be divided, into concurrent operations
+		- like declaring the value of a variable
+		
+
+Memory Access Synchronization
+1. sync.WaitGroup
+2. sync.Cond
+3. sync.Once
+4. sync.Mutex
+5. sync.RWMutex
+6. sync.Map
+7. sync.Pool
+
+
+Deadlocks
+	- concurrent process_one relies on process_two <-- two will never finish
+	
+Livelock
+	- they all just keep spinning
+    - The main difference between livelock and deadlock is that 
+    threads are not going to be blocked, instead they will try to
+    respond to each other continuously.
+    
+Starvation
+
+
+
+
+https://stackoverflow.com/questions/19148809/how-to-use-rwmutex-in-golang#:~:text=RWMutex%20is%20an%20extension%20of,two%20methods%3A%20RLock%20and%20RUnlock.&text=If%20the%20mutex%20is%20read,)%2C%20RLock%20will%20block**.
+
+RWMutex is an extension of Mutex and adds two methods: RLock and RUnlock. There are a few points that are important to note about RWMutex:
+
+RLock is a shared read lock. When a lock is taken with it, other threads* can also take their own lock with RLock. This means multiple threads* can read at the same time. It's semi-exclusive.
+
+If the mutex is read locked, a call to Lock is blocked**. If one or more readers hold a lock, you cannot write.
+
+If the mutex is write locked (with Lock), RLock will block**.
+
+A good way to think about it is RWMutex is a Mutex with a reader counter. RLock increments the counter while RUnlock decrements it. A call to Lock will block as long as that counter is > 0.
+
+You may be thinking: If my application is read heavy, would that mean a writer could be blocked indefinitely? No. There is one more useful property of RWMutex:
+
+If the reader counter is > 0 and Lock is called, future calls to RLock will also block until the existing readers have released their locks, the writer has obtained his lock and later releases it.
+Think of it as the light above a register at the grocery store that says a cashier is open or not. The people in line get to stay there and they will be helped, but new people cannot get in line. As soon as the last remaining customer is helped the cashier goes on break, and that register either remains closed until they come back or they are replaced with a different cashier.
