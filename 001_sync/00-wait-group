@@ -1,0 +1,34 @@
+package main
+
+import (
+	"net/http"
+	"sync"
+	"time"
+)
+
+func longProcess(wg *sync.WaitGroup, rw http.ResponseWriter) {
+
+	defer wg.Done()
+
+	time.Sleep(time.Second * 5) // simulate work
+
+	rw.Write([]byte("I'm a long process that finished...\n"))
+}
+
+func main() {
+	var wg sync.WaitGroup
+
+	http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
+
+		go longProcess(&wg, rw)
+		wg.Add(1)
+
+		wg.Wait()
+		rw.Write([]byte("All long processes are gone\n"))
+
+	})
+
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		panic(err)
+	}
+}

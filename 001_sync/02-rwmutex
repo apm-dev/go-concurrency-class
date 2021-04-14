@@ -1,0 +1,71 @@
+package main
+
+import (
+	"fmt"
+	"runtime"
+	"sync"
+	"time"
+)
+
+type data struct {
+	// sync.RWMutex
+	round map[string]int
+}
+
+func main() {
+	// to get into trouble sooner
+	runtime.GOMAXPROCS(2)
+
+	var wg sync.WaitGroup
+
+	d := newData()
+	d.round["one"] = 0
+	d.round["two"] = 0
+	d.round["three"] = 0
+
+	wg.Add(3)
+	go doWork("one", d, &wg)
+	go doWork("two", d, &wg)
+	go doWork("three", d, &wg)
+
+	go getData(d)
+
+	wg.Wait()
+	fmt.Println("We won't get here")
+}
+
+func newData() *data {
+	return &data{
+		// RWMutex: sync.RWMutex{},
+		round: map[string]int{},
+	}
+}
+
+func doWork(wid string, d *data, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for range time.Tick(time.Millisecond * 500) {
+		d.update(wid)
+	}
+}
+
+func (d *data) update(wid string) {
+	// lock the resource and defer unlock
+	// d.Lock()
+	// defer d.Unlock()
+	// do job
+	count, ok := d.round[wid]
+	if !ok {
+		fmt.Println("some error occurred...")
+		return
+	}
+	d.round[wid] = count + 1
+}
+
+func getData(d *data) {
+	for range time.Tick(time.Millisecond * 500) {
+		// d.RLock()
+		fmt.Println(d.round)
+		// d.RUnlock()
+	}
+}

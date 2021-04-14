@@ -1,0 +1,51 @@
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+func listen(name string, a map[string]int, c *sync.Cond, wg *sync.WaitGroup) {
+	defer wg.Done()
+	// lock the map resource
+	c.L.Lock()
+	// wait for the signal to do our job
+	c.Wait()
+	// do our job (read from map)
+	fmt.Println(name, ", age:", a["Parsa"])
+	// unlock the map resource for others
+	c.L.Unlock()
+}
+
+func broadcast(a map[string]int, c *sync.Cond, wg *sync.WaitGroup) {
+	defer wg.Done()
+	// we have to sleep to ensure c.Broadcast calls before c.Wait in listeners
+	// rather than we face with a deadlock situation
+	time.Sleep(time.Second)
+	// lock the map resource
+	c.L.Lock()
+	// do our job
+	a["Parsa"] = 25
+	// send a signal to listeners to continue their jobs
+	c.Broadcast()
+	// unlock the map resource
+	c.L.Unlock()
+}
+
+func main() {
+
+	var a = make(map[string]int)
+
+	var wg sync.WaitGroup
+	var m sync.Mutex
+	c := sync.NewCond(&m)
+
+	wg.Add(3)
+
+	go listen("listener-1", a, c, &wg)
+	go listen("listener-2", a, c, &wg)
+	go broadcast(a, c, &wg)
+
+	wg.Wait()
+}
