@@ -14,11 +14,15 @@ Atomicity
 
 Memory Access Synchronization
 1. sync.WaitGroup
-2. sync.Cond
-3. sync.Once
 4. sync.Mutex
 5. sync.RWMutex
+3. sync.Once
+2. sync.Cond
 6. sync.Map
+	1. when the entry for a given key is only ever written once but read many times,
+		as in caches that only grow
+	2. when multiple goroutines read, write, and overwrite entries for disjoint sets
+		of keys
 7. sync.Pool
 
 

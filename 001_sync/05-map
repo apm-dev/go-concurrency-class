@@ -1,0 +1,61 @@
+package main
+
+import (
+	"fmt"
+	"runtime"
+	"sync"
+	"time"
+)
+
+func main() {
+	// to get into trouble sooner
+	runtime.GOMAXPROCS(2)
+
+	var wg sync.WaitGroup
+
+	d := newData()
+	d.Store("one", 0)
+	d.Store("two", 0)
+	d.Store("three", 0)
+
+	wg.Add(3)
+	go doWork("one", d, &wg)
+	go doWork("two", d, &wg)
+	go doWork("three", d, &wg)
+
+	go getData(d)
+
+	wg.Wait()
+	fmt.Println("We won't get here")
+}
+
+func newData() *sync.Map {
+	return &sync.Map{}
+}
+
+func doWork(wid string, d *sync.Map, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	for range time.Tick(time.Millisecond * 500) {
+		update(d, wid)
+	}
+}
+
+func update(d *sync.Map, wid string) {
+	count, ok := d.Load(wid)
+	if !ok {
+		fmt.Println("some error occurred...")
+		return
+	}
+	d.Store(wid, count.(int)+1)
+}
+
+func getData(d *sync.Map) {
+	for range time.Tick(time.Millisecond * 500) {
+		d.Range(func(key, value interface{}) bool {
+			fmt.Printf("%s: %d , ", key, value)
+			return true
+		})
+		fmt.Println("")
+	}
+}
